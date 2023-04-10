@@ -1,6 +1,15 @@
+#include <iostream>
+
 #include "vec3d.h"
 
-#include <iostream>
+using color = vec3d;
+
+void write_color(std::ostream& out, color const& pixel_color) {
+  // Write the translated [0,255] value of each color component.
+  out << static_cast<int>(255.999 * pixel_color.x) << ' '
+      << static_cast<int>(255.999 * pixel_color.y) << ' '
+      << static_cast<int>(255.999 * pixel_color.z) << '\n';
+}
 
 int main(int argc, char* argv[]) {
   const auto img_width = 256;
@@ -15,11 +24,7 @@ int main(int argc, char* argv[]) {
       const auto g = double(i) / img_height;
       const auto b = 0.25;
 
-      const auto ir = static_cast<int>(r * 255.);
-      const auto ig = static_cast<int>(g * 255.);
-      const auto ib = static_cast<int>(b * 255.);
-
-      std::cout << ir << ' ' << ig << ' ' << ib << '\n';
+      write_color(std::cout, Color(r, g, b));
     }
   }
 

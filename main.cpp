@@ -2,9 +2,9 @@
 
 #include "vec3d.h"
 
-using color = vec3d;
+using Color = vec3d;
 
-void write_color(std::ostream& out, color const& pixel_color) {
+void writeColor(std::ostream& out, Color const& pixel_color) {
   // Write the translated [0,255] value of each color component.
   out << static_cast<int>(255.999 * pixel_color.x) << ' '
       << static_cast<int>(255.999 * pixel_color.y) << ' '
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
       const auto g = double(i) / img_height;
       const auto b = 0.25;
 
-      write_color(std::cout, Color(r, g, b));
+      writeColor(std::cout, Color(r, g, b));
     }
   }
 

@@ -17,7 +17,7 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << static_cast<int>(255.999 * pixel_color.z) << '\n';
 }
 
-bool isSphereHit(Sphere const& sphere, Ray const& ray) {
+double sphereHitParameter(Sphere const& sphere, Ray const& ray) {
   const auto tmp = ray.origin() - sphere.center;
 
   const auto a = ray.direction().length_squared();
@@ -25,6 +25,14 @@ bool isSphereHit(Sphere const& sphere, Ray const& ray) {
   const auto c = tmp.length_squared() - sphere.radius * sphere.radius;
 
   const auto discriminant = b * b - 4. * a * c;
+  if (discriminant > 0.) {
+    // Return the first solution.
+    return (-b - sqrt(discriminant)) / (2. * a);
+  }
+  else {
+    return -1.;
+  }
+
 
   return discriminant > 0.;
 }
@@ -33,8 +41,11 @@ Color getRayColor(Ray const& ray)
 {
   // Check if sphere is hit and return red in that case.
   Sphere sphere{ vec3d(0., 0., 3.), 1. };
-  if (isSphereHit(sphere, ray))
-    return Color(1., 0., 0.);
+  const auto hit_param = sphereHitParameter(sphere, ray);
+  if (hit_param > 0.) {
+    const auto normal = unit_vector(ray.at(hit_param) - sphere.center);
+    return 0.5 * (normal + vec3d(1., 1., 1.));
+  }
 
   // Ranges from -1 to 1.
   const auto y = unit_vector(ray.direction()).y;

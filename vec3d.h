@@ -67,3 +67,7 @@ inline vec3d operator/(vec3d const& v, double t) { return (1. / t) * v; }
 inline double dot(vec3d const& v, vec3d const& u) {
   return v.x * u.x + v.y * u.y + v.z * u.z;
 }
+
+inline vec3d unit_vector(vec3d const& v) {
+  return v / v.length();
+}

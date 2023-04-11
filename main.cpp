@@ -4,8 +4,7 @@
 
 using Color = vec3d;
 
-struct Sphere
-{
+struct Sphere {
   vec3d center;
   double radius;
 };
@@ -28,19 +27,16 @@ double sphereHitParameter(Sphere const& sphere, Ray const& ray) {
   if (discriminant > 0.) {
     // Return the first solution.
     return (-b - sqrt(discriminant)) / (2. * a);
-  }
-  else {
+  } else {
     return -1.;
   }
-
 
   return discriminant > 0.;
 }
 
-Color getRayColor(Ray const& ray) 
-{
+Color getRayColor(Ray const& ray) {
   // Check if sphere is hit and return red in that case.
-  Sphere sphere{ vec3d(0., 0., 3.), 1. };
+  Sphere sphere{vec3d(0., 0., 3.), 1.};
   const auto hit_param = sphereHitParameter(sphere, ray);
   if (hit_param > 0.) {
     const auto normal = unit_vector(ray.at(hit_param) - sphere.center);
@@ -87,7 +83,7 @@ int main(int argc, char* argv[]) {
       const auto y = double(i) / img_height;
 
       const auto viewport_pos = viewport_origin + x * horizontal + y * vertical;
-      const auto ray = Ray(origin, viewport_pos - origin); 
+      const auto ray = Ray(origin, viewport_pos - origin);
 
       const auto ray_color = getRayColor(ray);
       writeColor(std::cout, ray_color);

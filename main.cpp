@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "vec3d.h"
+#include "Ray.h"
 
 using Color = vec3d;
 
@@ -11,20 +11,52 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << static_cast<int>(255.999 * pixel_color.z) << '\n';
 }
 
+Color getRayColor(Ray const& ray) 
+{
+  // Ranges from -1 to 1.
+  const auto y = unit_vector(ray.direction()).y;
+
+  // Ranges from 0 to 1.
+  const auto y1 = 0.5 * (y + 1.);
+
+  return (1. - y1) * Color(1., 1., 1.) + y1 * Color(0.5, 0.7, 1.0);
+}
+
 int main(int argc, char* argv[]) {
-  const auto img_width = 256;
-  const auto img_height = 256;
+  // Width over height.
+  const auto aspect_ratio = 16. / 9.;
+
+  const auto img_width = 400;
+  const auto img_height = static_cast<int>(img_width / aspect_ratio);
+
+  // Setup the "eye" (origin) and the viewport, that maps to the image.
+  // The "eye sits at the origin. The viewport is a rectangle with the
+  // same aspect ratio as the image and sits at the distance one along
+  // the z-axis. We choose its height to be 2.
+  const auto origin = vec3d(0., 0., 0.);
+
+  const auto viewport_height = 2.0;
+  const auto viewport_width = viewport_height * aspect_ratio;
+  const auto focal_length = 1.0;
+
+  const auto horizontal = vec3d(viewport_width, 0., 0.);
+  const auto vertical = vec3d(0., viewport_height, 0.);
+  const auto viewport_origin =
+      vec3d(0., 0., focal_length) - horizontal / 2. - vertical / 2.;
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
   for (int i = 0; i < img_height; ++i) {
     for (int j = 0; j < img_width; ++j) {
-      const auto r = double(j) / img_width;
-      const auto g = double(i) / img_height;
-      const auto b = 0.25;
+      const auto x = double(j) / img_width;
+      const auto y = double(i) / img_height;
 
-      writeColor(std::cout, Color(r, g, b));
+      const auto viewport_pos = viewport_origin + x * horizontal + y * vertical;
+      const auto ray = Ray(origin, viewport_pos - origin); 
+
+      const auto ray_color = getRayColor(ray);
+      writeColor(std::cout, ray_color);
     }
   }
 

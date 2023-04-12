@@ -1,13 +1,8 @@
 #include <iostream>
 
-#include "Ray.h"
+#include "Sphere.h"
 
 using Color = vec3d;
-
-struct Sphere {
-  vec3d center;
-  double radius;
-};
 
 void writeColor(std::ostream& out, Color const& pixel_color) {
   // Write the translated [0,255] value of each color component.
@@ -16,34 +11,12 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << static_cast<int>(255.999 * pixel_color.z) << '\n';
 }
 
-double sphereHitParameter(Sphere const& sphere, Ray const& ray) {
-  // Compute the solution of the quadratic equation, obtained from the
-  // requirement: |ray(t) - sphere_center|^2 = sphere_radius^2
-  const auto tmp = ray.origin() - sphere.center;
-
-  // Factor of 2 factors out and simplifies the standard quadratic equation.
-  const auto a = ray.direction().length_squared();
-  const auto half_b = dot(ray.direction(), tmp);
-  const auto c = tmp.length_squared() - sphere.radius * sphere.radius;
-
-  const auto discriminant = half_b * half_b - a * c;
-  if (discriminant > 0.) {
-    // Return the first solution.
-    return (-half_b - sqrt(discriminant)) / a;
-  } else {
-    return -1.;
-  }
-
-  return discriminant > 0.;
-}
-
 Color getRayColor(Ray const& ray) {
   // Check if sphere is hit and return red in that case.
   Sphere sphere{vec3d(0., 0., 3.), 1.};
-  const auto hit_param = sphereHitParameter(sphere, ray);
-  if (hit_param > 0.) {
-    const auto normal = unit_vector(ray.at(hit_param) - sphere.center);
-    return 0.5 * (normal + vec3d(1., 1., 1.));
+  HitRecord hit_record;
+  if (sphere.hit(ray, 0., util::inifinity, hit_record)) {
+    return 0.5 * (hit_record.normal + vec3d(1., 1., 1.));
   }
 
   // Ranges from -1 to 1.

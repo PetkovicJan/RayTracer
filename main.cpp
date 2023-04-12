@@ -17,16 +17,19 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
 }
 
 double sphereHitParameter(Sphere const& sphere, Ray const& ray) {
+  // Compute the solution of the quadratic equation, obtained from the
+  // requirement: |ray(t) - sphere_center|^2 = sphere_radius^2
   const auto tmp = ray.origin() - sphere.center;
 
+  // Factor of 2 factors out and simplifies the standard quadratic equation.
   const auto a = ray.direction().length_squared();
-  const auto b = 2. * dot(ray.direction(), tmp);
+  const auto half_b = dot(ray.direction(), tmp);
   const auto c = tmp.length_squared() - sphere.radius * sphere.radius;
 
-  const auto discriminant = b * b - 4. * a * c;
+  const auto discriminant = half_b * half_b - a * c;
   if (discriminant > 0.) {
     // Return the first solution.
-    return (-b - sqrt(discriminant)) / (2. * a);
+    return (-half_b - sqrt(discriminant)) / a;
   } else {
     return -1.;
   }

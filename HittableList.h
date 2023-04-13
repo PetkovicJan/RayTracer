@@ -10,8 +10,7 @@ class HittableList : public Hittable {
  public:
   void clear() { hittables_.clear(); }
 
-  template <typename HittableT,
-            class... Args,
+  template <typename HittableT, class... Args,
             typename = std::enable_if_t<std::is_base_of_v<Hittable, HittableT>>>
   void add(Args&&... args) {
     hittables_.push_back(

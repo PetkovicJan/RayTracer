@@ -19,5 +19,5 @@ class Hittable {
   virtual bool hit(Ray const& ray, double t_min, double t_max,
                    HitRecord& hit_record) const = 0;
 
-  virtual ~Hittable(){}
+  virtual ~Hittable() {}
 };

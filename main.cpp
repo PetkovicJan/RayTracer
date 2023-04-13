@@ -13,13 +13,17 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << static_cast<int>(255.999 * pixel_color.z) << '\n';
 }
 
-Color getRayColor(HittableList const& world, Ray const& ray) {
-  // Check if sphere is hit and return red in that case.
+Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
+  if (depth <= 0) return Color();
+
+
   HitRecord hit_record;
   if (world.hit(ray, 0., util::inifinity, hit_record)) {
-    // Use normal to set the color. Linearly transform values to range from 0
-    // to 1.
-    return 0.5 * (hit_record.normal + vec3d(1., 1., 1.));
+    const auto new_ray_dir =
+        hit_record.normal + util::get_random_vec_in_unit_sphere();
+    const Ray difused_ray(hit_record.point, new_ray_dir);
+    constexpr double reflection_factor = 0.5;
+    return reflection_factor * getRayColor(world, difused_ray, depth - 1);
   }
 
   // Ranges from -1 to 1.
@@ -40,6 +44,8 @@ int main(int argc, char* argv[]) {
 
   const int num_samples_per_pixel = 50;
 
+  const int max_ray_depth = 50;
+
   // Setup the world.
   HittableList world;
   world.add<Sphere>(vec3d(0., 0., 3.), 1.);
@@ -50,11 +56,10 @@ int main(int argc, char* argv[]) {
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
   for (int row = 0; row < img_height; ++row) {
     for (int col = 0; col < img_width; ++col) {
-
       Color pixel_color;
       for (int s = 0; s < num_samples_per_pixel; ++s) {
         const auto ray = cam.getRayThroughPixel(row, col);
-        pixel_color += getRayColor(world, ray);
+        pixel_color += getRayColor(world, ray, max_ray_depth);
       }
       pixel_color /= double(num_samples_per_pixel);
 

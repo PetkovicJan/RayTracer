@@ -9,7 +9,7 @@ class Sphere : public Hittable {
       : center_(center), radius_(radius) {}
 
   bool hit(Ray const& ray, double t_min, double t_max,
-           HitRecord& hit_record) override {
+           HitRecord& hit_record) const override {
     // Compute the solution of the quadratic equation, obtained from the
     // requirement: |ray(t) - center|^2 = radius^2
     const auto tmp = ray.origin() - center_;

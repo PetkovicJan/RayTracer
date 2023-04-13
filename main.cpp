@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "HittableList.h"
 #include "Sphere.h"
 
 using Color = vec3d;
@@ -11,11 +12,12 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << static_cast<int>(255.999 * pixel_color.z) << '\n';
 }
 
-Color getRayColor(Ray const& ray) {
+Color getRayColor(HittableList const& world, Ray const& ray) {
   // Check if sphere is hit and return red in that case.
-  Sphere sphere{vec3d(0., 0., 3.), 1.};
   HitRecord hit_record;
-  if (sphere.hit(ray, 0., util::inifinity, hit_record)) {
+  if (world.hit(ray, 0., util::inifinity, hit_record)) {
+    // Use normal to set the color. Linearly transform values to range from 0
+    // to 1.
     return 0.5 * (hit_record.normal + vec3d(1., 1., 1.));
   }
 
@@ -50,6 +52,11 @@ int main(int argc, char* argv[]) {
   const auto viewport_origin =
       vec3d(0., 0., focal_length) - horizontal / 2. - vertical / 2.;
 
+  // Setup the world.
+  HittableList world;
+  world.add<Sphere>(vec3d(0., 0., 3.), 1.);
+  world.add<Sphere>(vec3d(0., 101.5, 1.), 100.);
+
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
@@ -61,7 +68,7 @@ int main(int argc, char* argv[]) {
       const auto viewport_pos = viewport_origin + x * horizontal + y * vertical;
       const auto ray = Ray(origin, viewport_pos - origin);
 
-      const auto ray_color = getRayColor(ray);
+      const auto ray_color = getRayColor(world, ray);
       writeColor(std::cout, ray_color);
     }
   }

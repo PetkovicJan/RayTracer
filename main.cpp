@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "Camera.h"
 #include "HittableList.h"
 #include "Sphere.h"
 
@@ -31,26 +32,11 @@ Color getRayColor(HittableList const& world, Ray const& ray) {
 }
 
 int main(int argc, char* argv[]) {
-  // Width over height.
+  // Choose appropriate aspect ratio (width over height).
   const auto aspect_ratio = 16. / 9.;
-
   const auto img_width = 400;
   const auto img_height = static_cast<int>(img_width / aspect_ratio);
-
-  // Setup the "eye" (origin) and the viewport, that maps to the image.
-  // The "eye sits at the origin. The viewport is a rectangle with the
-  // same aspect ratio as the image and sits at the distance one along
-  // the z-axis. We choose its height to be 2.
-  const auto origin = vec3d(0., 0., 0.);
-
-  const auto viewport_height = 2.0;
-  const auto viewport_width = viewport_height * aspect_ratio;
-  const auto focal_length = 1.0;
-
-  const auto horizontal = vec3d(viewport_width, 0., 0.);
-  const auto vertical = vec3d(0., viewport_height, 0.);
-  const auto viewport_origin =
-      vec3d(0., 0., focal_length) - horizontal / 2. - vertical / 2.;
+  const Camera cam(img_width, img_height);
 
   // Setup the world.
   HittableList world;
@@ -62,13 +48,10 @@ int main(int argc, char* argv[]) {
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
   for (int i = 0; i < img_height; ++i) {
     for (int j = 0; j < img_width; ++j) {
-      const auto x = double(j) / img_width;
-      const auto y = double(i) / img_height;
-
-      const auto viewport_pos = viewport_origin + x * horizontal + y * vertical;
-      const auto ray = Ray(origin, viewport_pos - origin);
+      const auto ray = cam.getRayThroughPixel(i, j);
 
       const auto ray_color = getRayColor(world, ray);
+
       writeColor(std::cout, ray_color);
     }
   }

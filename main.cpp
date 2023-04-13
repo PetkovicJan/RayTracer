@@ -38,6 +38,8 @@ int main(int argc, char* argv[]) {
   const auto img_height = static_cast<int>(img_width / aspect_ratio);
   const Camera cam(img_width, img_height);
 
+  const int num_samples_per_pixel = 50;
+
   // Setup the world.
   HittableList world;
   world.add<Sphere>(vec3d(0., 0., 3.), 1.);
@@ -46,13 +48,17 @@ int main(int argc, char* argv[]) {
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
-  for (int i = 0; i < img_height; ++i) {
-    for (int j = 0; j < img_width; ++j) {
-      const auto ray = cam.getRayThroughPixel(i, j);
+  for (int row = 0; row < img_height; ++row) {
+    for (int col = 0; col < img_width; ++col) {
 
-      const auto ray_color = getRayColor(world, ray);
+      Color pixel_color;
+      for (int s = 0; s < num_samples_per_pixel; ++s) {
+        const auto ray = cam.getRayThroughPixel(row, col);
+        pixel_color += getRayColor(world, ray);
+      }
+      pixel_color /= double(num_samples_per_pixel);
 
-      writeColor(std::cout, ray_color);
+      writeColor(std::cout, pixel_color);
     }
   }
 

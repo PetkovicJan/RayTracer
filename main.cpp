@@ -19,6 +19,20 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << ' ' << static_cast<int>(255.999 * b) << '\n';
 }
 
+Ray getDiffuseReflectedRay(HitRecord const& hit_record) {
+  // Obtain a new random direction by choosing a random point in a ball at the
+  // point of hit, shifted by a normal. This generates a certain distribution of
+  // reflected rays with higher probability in the direction of normal and small
+  // probability at shallow angles. Note that the direction is independent of
+  // the incomming ray direction. There are many different choices of generating
+  // new light rays, for example choosing the vectors only on the sphere surface
+  // or in the upper hemisphere of the sphere centered at hit point...
+  const auto new_ray_dir =
+      hit_record.normal + util::get_random_vec_in_unit_sphere();
+
+  return Ray(hit_record.point, new_ray_dir);
+}
+
 Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   // The diffuse materials have the property that they reflect rays in some
   // random direction with some additional absorbtion on each reflection. We
@@ -31,11 +45,7 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   // small t_min > 0.
   HitRecord hit_record;
   if (world.hit(ray, 0.001, util::inifinity, hit_record)) {
-    // Obtain a new random direction by choosing a random point in a ball at the
-    // point of hit.
-    const auto new_ray_dir =
-        hit_record.normal + util::get_random_vec_in_unit_sphere();
-    const Ray reflected_ray(hit_record.point, new_ray_dir);
+    const auto reflected_ray = getDiffuseReflectedRay(hit_record);
     constexpr double reflection_factor = 0.5;
     return reflection_factor * getRayColor(world, reflected_ray, depth - 1);
   }

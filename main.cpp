@@ -7,23 +7,37 @@
 using Color = vec3d;
 
 void writeColor(std::ostream& out, Color const& pixel_color) {
-  // Write the translated [0,255] value of each color component.
-  out << static_cast<int>(255.999 * pixel_color.x) << ' '
-      << static_cast<int>(255.999 * pixel_color.y) << ' '
-      << static_cast<int>(255.999 * pixel_color.z) << '\n';
+  // Gamma correct the values.
+  const auto r = sqrt(pixel_color.x);
+  const auto g = sqrt(pixel_color.y);
+  const auto b = sqrt(pixel_color.z);
+
+  // Write the translated [0,255] value of each color component. Note that due
+  // to casting, we need to use the interval [0., 256) in order to represent
+  // each "bin" equivalently.
+  out << static_cast<int>(255.999 * r) << ' ' << static_cast<int>(255.999 * g)
+      << ' ' << static_cast<int>(255.999 * b) << '\n';
 }
 
 Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
-  if (depth <= 0) return Color();
+  // The diffuse materials have the property that they reflect rays in some
+  // random direction with some additional absorbtion on each reflection. We
+  // recurse over such reflections until none of such objects are hit and we
+  // finally obtain the light source.
+  if (depth <= 0) return Color(0., 0., 0.);
 
-
+  // The reflected ray by definition hits the object it is reflecting off at 0 +
+  // some rounding error. In order to avoid those solutions, we simply use some
+  // small t_min > 0.
   HitRecord hit_record;
-  if (world.hit(ray, 0., util::inifinity, hit_record)) {
+  if (world.hit(ray, 0.001, util::inifinity, hit_record)) {
+    // Obtain a new random direction by choosing a random point in a ball at the
+    // point of hit.
     const auto new_ray_dir =
         hit_record.normal + util::get_random_vec_in_unit_sphere();
-    const Ray difused_ray(hit_record.point, new_ray_dir);
+    const Ray reflected_ray(hit_record.point, new_ray_dir);
     constexpr double reflection_factor = 0.5;
-    return reflection_factor * getRayColor(world, difused_ray, depth - 1);
+    return reflection_factor * getRayColor(world, reflected_ray, depth - 1);
   }
 
   // Ranges from -1 to 1.

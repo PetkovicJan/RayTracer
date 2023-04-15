@@ -1,8 +1,5 @@
 #pragma once
 
-#include <limits>
-#include <random>
-
 #include "vec3d.h"
 
 namespace util {

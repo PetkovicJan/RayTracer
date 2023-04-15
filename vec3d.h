@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cmath>
+#include "Pch.h"
 
 struct vec3d {
   double x{0.};

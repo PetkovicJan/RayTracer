@@ -1,4 +1,4 @@
-#include <iostream>
+#include "Pch.h"
 
 #include "Camera.h"
 #include "HittableList.h"

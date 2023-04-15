@@ -44,3 +44,26 @@ class Lambertian : public Material {
  private:
   Color albedo_;
 };
+
+// Metal material, which reflects the ray at the same angle as incomming.
+class Metal : public Material {
+ public:
+  explicit Metal(Color const& albedo) : albedo_(albedo) {}
+
+  bool scatterRay(Ray const& ray_in, HitRecord const& hit_record, Ray& ray_out,
+                  Color& albedo) const override {
+    const auto& dir_in = ray_in.direction();
+    const auto& normal = hit_record.normal;
+
+    const auto dir_out = dir_in - 2. * dot(dir_in, normal) * normal;
+
+    ray_out = Ray(hit_record.point, dir_out);
+
+    albedo = albedo_;
+
+    return true;
+  }
+
+ private:
+  Color albedo_;
+};

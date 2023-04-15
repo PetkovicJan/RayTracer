@@ -82,12 +82,17 @@ int main(int argc, char* argv[]) {
   const int max_ray_depth = 50;
 
   // Materials.
-  Lambertian material_lambertian(Color(0.5, 0.5, 0.5));
+  Lambertian lambertian0(Color(0.8, 0.4, 0.));
+  Lambertian lambertian1(Color(0.4, 0.8, 0.));
+  Metal metal0(Color(0.8, 0.8, 0.8));
+  Metal metal1(Color(0.8, 0.6, 0.2));
 
   // Setup the world.
   HittableList world;
-  world.add<Sphere>(vec3d(0., 0., 3.), 1., &material_lambertian);
-  world.add<Sphere>(vec3d(0., 101.5, 1.), 100., &material_lambertian);
+  world.add<Sphere>(vec3d(0., 101.5, 1.), 100., &lambertian0);
+  world.add<Sphere>(vec3d(0., 0., 3.), 1., &lambertian1);
+  world.add<Sphere>(vec3d(2., 0., 3.), 1., &metal0);
+  world.add<Sphere>(vec3d(-2., 0., 3.), 1., &metal1);
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm

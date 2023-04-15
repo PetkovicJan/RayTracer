@@ -5,10 +5,19 @@
 class Material;
 
 struct HitRecord {
+  // Point of ray hit.
   vec3d point;
+
+  // Normal to the surface at the point of the hit on the side of the incomming ray.
   vec3d normal;
+
+  // Parameter of the ray at the point of the hit.
   double t;
+
+  // Is hit at the front?
   bool front_face;
+
+  // Material at the point of the hit.
   Material* material = nullptr;
 
   inline void set_face_normal(Ray const& ray, vec3d const& outward_normal) {

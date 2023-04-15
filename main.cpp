@@ -18,20 +18,6 @@ void writeColor(std::ostream& out, Color const& pixel_color) {
       << ' ' << static_cast<int>(255.999 * b) << '\n';
 }
 
-Ray getDiffuseReflectedRay(HitRecord const& hit_record) {
-  // Obtain a new random direction by choosing a random point in a ball at the
-  // point of hit, shifted by a normal. This generates a certain distribution of
-  // reflected rays with higher probability in the direction of normal and small
-  // probability at shallow angles. Note that the direction is independent of
-  // the incomming ray direction. There are many different choices of generating
-  // new light rays, for example choosing the vectors only on the sphere surface
-  // or in the upper hemisphere of the sphere centered at hit point...
-  const auto new_ray_dir =
-      hit_record.normal + util::get_random_vec_in_unit_sphere();
-
-  return Ray(hit_record.point, new_ray_dir);
-}
-
 Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   // If ray scattered too many times, simply stop it to prevent too deep
   // recursions.
@@ -84,8 +70,8 @@ int main(int argc, char* argv[]) {
   // Materials.
   Lambertian lambertian0(Color(0.8, 0.4, 0.));
   Lambertian lambertian1(Color(0.4, 0.8, 0.));
-  Metal metal0(Color(0.8, 0.8, 0.8));
-  Metal metal1(Color(0.8, 0.6, 0.2));
+  Metal metal0(Color(0.8, 0.8, 0.8), 0.2);
+  Metal metal1(Color(0.8, 0.6, 0.2), 0.5);
 
   // Setup the world.
   HittableList world;

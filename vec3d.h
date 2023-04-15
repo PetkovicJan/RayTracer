@@ -56,6 +56,10 @@ inline vec3d operator-(vec3d const& v, vec3d const& u) {
   return vec3d(v.x - u.x, v.y - u.y, v.z - u.z);
 }
 
+inline vec3d operator*(vec3d const& v, vec3d const& u) {
+  return vec3d(v.x * u.x, v.y * u.y, v.z * u.z);
+}
+
 inline vec3d operator*(double t, vec3d const& v) {
   return vec3d(t * v.x, t * v.y, t * v.z);
 }
@@ -69,3 +73,5 @@ inline double dot(vec3d const& v, vec3d const& u) {
 }
 
 inline vec3d unit_vector(vec3d const& v) { return v / v.length(); }
+
+using Color = vec3d;

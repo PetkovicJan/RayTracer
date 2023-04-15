@@ -4,6 +4,8 @@
 
 class Ray {
  public:
+  explicit Ray() {}
+
   explicit Ray(vec3d const& origin, vec3d const& dir)
       : origin_(origin), dir_(dir) {}
 

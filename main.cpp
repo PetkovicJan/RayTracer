@@ -2,9 +2,8 @@
 
 #include "Camera.h"
 #include "HittableList.h"
+#include "Material.h"
 #include "Sphere.h"
-
-using Color = vec3d;
 
 void writeColor(std::ostream& out, Color const& pixel_color) {
   // Gamma correct the values.
@@ -34,10 +33,8 @@ Ray getDiffuseReflectedRay(HitRecord const& hit_record) {
 }
 
 Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
-  // The diffuse materials have the property that they reflect rays in some
-  // random direction with some additional absorbtion on each reflection. We
-  // recurse over such reflections until none of such objects are hit and we
-  // finally obtain the light source.
+  // If ray scattered too many times, simply stop it to prevent too deep
+  // recursions.
   if (depth <= 0) return Color(0., 0., 0.);
 
   // The reflected ray by definition hits the object it is reflecting off at 0 +
@@ -45,9 +42,14 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   // small t_min > 0.
   HitRecord hit_record;
   if (world.hit(ray, 0.001, util::inifinity, hit_record)) {
-    const auto reflected_ray = getDiffuseReflectedRay(hit_record);
-    constexpr double reflection_factor = 0.5;
-    return reflection_factor * getRayColor(world, reflected_ray, depth - 1);
+    Ray scattered_ray;
+    Color albedo;
+    if (hit_record.material->scatterRay(ray, hit_record, scattered_ray,
+                                        albedo)) {
+      return albedo * getRayColor(world, scattered_ray, depth - 1);
+    } else {
+      return Color();
+    }
   }
 
   // Ranges from -1 to 1.
@@ -79,10 +81,13 @@ int main(int argc, char* argv[]) {
 
   const int max_ray_depth = 50;
 
+  // Materials.
+  Lambertian material_lambertian(Color(0.5, 0.5, 0.5));
+
   // Setup the world.
   HittableList world;
-  world.add<Sphere>(vec3d(0., 0., 3.), 1.);
-  world.add<Sphere>(vec3d(0., 101.5, 1.), 100.);
+  world.add<Sphere>(vec3d(0., 0., 3.), 1., &material_lambertian);
+  world.add<Sphere>(vec3d(0., 101.5, 1.), 100., &material_lambertian);
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm

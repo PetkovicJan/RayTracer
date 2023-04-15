@@ -59,6 +59,15 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   return (1. - y1) * Color(1., 1., 1.) + y1 * Color(0.5, 0.7, 1.0);
 }
 
+// We generate images with ray tracing in the following way. We set up the
+// "world" - a set of objects in 3D. Then we set up the camera eye (a point in
+// 3D space) and a window (a rectangle in 3D space), through which the eye sees
+// the world. The window is divided into a mesh, that represents the pixels,
+// which we want to generate. In order to obtain the color of a given pixel, we
+// backtrace the ray path from the eye through that pixel and determine its
+// color based on what it has hit on its way towards the eye. Note that the ray
+// may reflect, refract, get partially absorbed, etc. depending on the objects
+// it hits on the way.
 int main(int argc, char* argv[]) {
   // Choose appropriate aspect ratio (width over height).
   const auto aspect_ratio = 16. / 9.;

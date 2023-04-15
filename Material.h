@@ -27,8 +27,13 @@ class Lambertian : public Material {
     // choices of generating new light rays, for example choosing the vectors
     // only on the sphere surface or in the upper hemisphere of the sphere
     // centered at hit point...
-    const auto new_ray_dir =
+    auto new_ray_dir =
         hit_record.normal + util::get_random_vec_in_unit_sphere();
+    // Handle the case when the new ray direction is very close to zero.
+    if (new_ray_dir.length_squared() < 1e-8) {
+      new_ray_dir = hit_record.normal;
+    }
+
     ray_out = Ray(hit_record.point, new_ray_dir);
 
     albedo = albedo_;

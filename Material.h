@@ -12,7 +12,7 @@ class Material {
                           Ray& ray_out, Color& albedo) const = 0;
 };
 
-// Diffuse material, which sends the scattered ray in quasi-random direction.
+// Diffuse material reflects the scattered ray in quasi-random direction.
 class Lambertian : public Material {
  public:
   explicit Lambertian(Color const& albedo) : albedo_(albedo) {}
@@ -45,7 +45,7 @@ class Lambertian : public Material {
   Color albedo_;
 };
 
-// Metal material, which reflects the ray at the same angle as incomming.
+// Metal material reflects the ray at the same angle as incomming.
 class Metal : public Material {
  public:
   explicit Metal(Color const& albedo, double fuzziness)
@@ -73,14 +73,46 @@ class Metal : public Material {
   double fuzziness_;
 };
 
+// Dielectric material refracts the ray through Snell's law.
 class Dielectric : public Material {
  public:
   explicit Dielectric(double refraction_index)
-      : refraction_index_(refraction_index) {}
+      : refraction_index_(refraction_index),
+        inv_refraction_index_(1. / refraction_index) {}
 
   bool scatterRay(Ray const& ray_in, HitRecord const& hit_record, Ray& ray_out,
-                  Color& albedo) const override {}
+                  Color& albedo) const override {
+    const auto unit_dir_in = unit_vector(ray_in.direction());
+    const auto& normal = hit_record.normal;
+
+    const auto cos_alpha = -dot(unit_dir_in, normal);
+    const auto sin_alpha = sqrt(1. - cos_alpha * cos_alpha);
+
+    const auto refraction_factor =
+        hit_record.front_face ? inv_refraction_index_ : refraction_index_;
+
+    const auto can_refract = refraction_factor * sin_alpha < 1.;
+    vec3d scattered_dir;
+    if (can_refract) {
+      const auto unit_dir_out_perpendicular =
+          refraction_factor * (unit_dir_in + cos_alpha * normal);
+      const auto unit_dir_out_parallel =
+          -1. * sqrt(1. - unit_dir_out_perpendicular.length_squared()) * normal;
+
+      scattered_dir = unit_dir_out_perpendicular + unit_dir_out_parallel;
+    } else {
+      // Reflect the ray.
+      scattered_dir =
+          unit_vector(unit_dir_in - 2. * dot(unit_dir_in, normal) * normal);
+    }
+
+    ray_out = Ray(hit_record.point, scattered_dir);
+    albedo = Color(1., 1., 1.);
+
+    return true;
+  }
 
  private:
-   double refraction_index_;
+  double refraction_index_;
+  double inv_refraction_index_;
 };

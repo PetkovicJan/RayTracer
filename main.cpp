@@ -1,8 +1,7 @@
-#include "Pch.h"
-
 #include "Camera.h"
 #include "HittableList.h"
 #include "Material.h"
+#include "Pch.h"
 #include "Sphere.h"
 
 void writeColor(std::ostream& out, Color const& pixel_color) {
@@ -72,13 +71,14 @@ int main(int argc, char* argv[]) {
   Lambertian lambertian1(Color(0.4, 0.8, 0.));
   Metal metal0(Color(0.8, 0.8, 0.8), 0.2);
   Metal metal1(Color(0.8, 0.6, 0.2), 0.5);
+  Dielectric dielectric(1.5);
 
   // Setup the world.
   HittableList world;
   world.add<Sphere>(vec3d(0., 101.5, 1.), 100., &lambertian0);
   world.add<Sphere>(vec3d(0., 0., 3.), 1., &lambertian1);
   world.add<Sphere>(vec3d(2., 0., 3.), 1., &metal0);
-  world.add<Sphere>(vec3d(-2., 0., 3.), 1., &metal1);
+  world.add<Sphere>(vec3d(-2., 0., 3.), 1., &dielectric);
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm

@@ -59,7 +59,7 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
 int main(int argc, char* argv[]) {
   const auto scene_center = vec3d(0., 0., 5.);
 
-  const auto cam_eye = vec3d(0., -1., 0.);
+  const auto cam_eye = vec3d(-2., -3., 0.);
   const auto cam_direction = scene_center - cam_eye;
   const auto cam_vertical_fov = util::deg_to_rad(90.);
 
@@ -93,6 +93,9 @@ int main(int argc, char* argv[]) {
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
+
+  const auto percentage_step_size = 5;
+  auto last_step = 0;
   for (int row = 0; row < img_height; ++row) {
     for (int col = 0; col < img_width; ++col) {
       Color pixel_color;
@@ -103,6 +106,13 @@ int main(int argc, char* argv[]) {
       pixel_color /= double(num_samples_per_pixel);
 
       writeColor(std::cout, pixel_color);
+    }
+    const auto percentage = 100. * double(row) / img_height;
+
+    const auto current_step = static_cast<int>(percentage / percentage_step_size);
+    if (current_step > last_step) {
+      last_step = current_step;
+      std::cerr << "Percentage done: " << last_step * percentage_step_size << "%\n";
     }
   }
 

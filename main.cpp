@@ -57,11 +57,18 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
 // may reflect, refract, get partially absorbed, etc. depending on the objects
 // it hits on the way.
 int main(int argc, char* argv[]) {
+  const auto scene_center = vec3d(0., 0., 5.);
+
+  const auto cam_eye = vec3d(0., -1., 0.);
+  const auto cam_direction = scene_center - cam_eye;
+  const auto cam_vertical_fov = util::deg_to_rad(90.);
+
   // Choose appropriate aspect ratio (width over height).
   const auto aspect_ratio = 16. / 9.;
   const auto img_width = 400;
   const auto img_height = static_cast<int>(img_width / aspect_ratio);
-  const Camera cam(img_width, img_height);
+  const Camera cam(cam_eye, cam_direction, cam_vertical_fov, img_width,
+                   img_height);
 
   const int num_samples_per_pixel = 50;
 
@@ -76,10 +83,12 @@ int main(int argc, char* argv[]) {
 
   // Setup the world.
   HittableList world;
-  world.add<Sphere>(vec3d(0., 101.5, 1.), 100., &lambertian0);
-  world.add<Sphere>(vec3d(0., 0., 3.), 1., &lambertian1);
-  world.add<Sphere>(vec3d(2., 0., 3.), 1., &metal0);
-  world.add<Sphere>(vec3d(-2., 0., 3.), 1., &dielectric);
+  const auto big_radius = 100.;
+  const auto small_radius = 1.;
+  world.add<Sphere>(scene_center + vec3d(0., big_radius + small_radius + 0.5, 0.), big_radius, &lambertian0);
+  world.add<Sphere>(scene_center, small_radius, &lambertian1);
+  world.add<Sphere>(scene_center + vec3d(2., -1., 0.), small_radius, &metal0);
+  world.add<Sphere>(scene_center + vec3d(-2.5, 0., 0.), small_radius, &dielectric);
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm

@@ -72,6 +72,10 @@ inline double dot(vec3d const& v, vec3d const& u) {
   return v.x * u.x + v.y * u.y + v.z * u.z;
 }
 
+inline vec3d cross(vec3d const& v, vec3d const& u) {
+  return vec3d(v.y * u.z - v.z * u.y, v.z * u.x - v.x * u.z, v.x * u.y - v.y * u.x);
+}
+
 inline vec3d unit_vector(vec3d const& v) { return v / v.length(); }
 
 using Color = vec3d;

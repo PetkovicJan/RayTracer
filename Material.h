@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pch.h"
+
 #include "Hittable.h"
 #include "Ray.h"
 #include "Utils.h"
@@ -73,6 +75,18 @@ class Metal : public Material {
   double fuzziness_;
 };
 
+namespace detail {
+//  Reflectance is the probability of a ray to reflect in a dielectric material
+//  (instead of refracting) and varies with angle of the incomming ray as well
+//  as with the ratio of refraction indices of both materials.
+inline double reflectance(double cosine, double refraction_ratio) {
+  // A common Schlick's approximation.
+  auto r0 = (1 - refraction_ratio) / (1 + refraction_ratio);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
+}  // namespace detail
+
 // Dielectric material refracts the ray through Snell's law.
 class Dielectric : public Material {
  public:
@@ -92,8 +106,10 @@ class Dielectric : public Material {
         hit_record.front_face ? inv_refraction_index_ : refraction_index_;
 
     const auto can_refract = refraction_factor * sin_alpha < 1.;
+
     vec3d scattered_dir;
-    if (can_refract) {
+    if (can_refract && (util::get_random() >
+                        detail::reflectance(cos_alpha, refraction_factor))) {
       const auto unit_dir_out_perpendicular =
           refraction_factor * (unit_dir_in + cos_alpha * normal);
       const auto unit_dir_out_parallel =

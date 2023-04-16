@@ -1,7 +1,8 @@
+#include "Pch.h"
+
 #include "Camera.h"
 #include "HittableList.h"
 #include "Material.h"
-#include "Pch.h"
 #include "Sphere.h"
 
 void writeColor(std::ostream& out, Color const& pixel_color) {

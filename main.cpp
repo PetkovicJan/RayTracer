@@ -48,36 +48,53 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
 }
 
 HittableList createRandomWorld(vec3d const& scene_center) {
-
-  const auto big_radius = 100.;
-  const auto small_radius = .4;
+  const auto small_radius = 0.2;
+  const auto mid_radius = 1.;
+  const auto big_radius = 1000.;
 
   HittableList world;
 
-  auto ground = std::make_unique<Lambertian>(Color(0.4, 0.6, 0.2));
-  world.add<Sphere>(scene_center + vec3d(0., big_radius, 0.), big_radius, std::move(ground));
+  auto ground = std::make_unique<Lambertian>(Color(0.5, 0.5, 0.5));
+  world.add<Sphere>(scene_center + vec3d(0., big_radius, 0.), big_radius,
+                    std::move(ground));
 
   // Place small spheres on the plane of the big sphere.
-  for(int x = -2; x < 2; ++x)
-    for (int y = -2; y < 2; ++y)
-    {
-      const auto pos = scene_center + vec3d(x, -small_radius, y);
+  for (int x = -11; x < 11; ++x)
+    for (int y = -11; y < 11; ++y) {
+      const auto pos =
+          scene_center + vec3d(x + 0.8 * util::get_random(), -small_radius,
+                               y + 0.8 * util::get_random());
+      if ((pos - vec3d(0., -small_radius, pos.z)).length() < mid_radius)
+        continue;
 
       const auto random_material_number = util::get_random();
 
       std::unique_ptr<Material> material;
       if (random_material_number < 0.5) {
-        material = std::make_unique<Lambertian>(util::get_random_vec());
-      }
-      else if (random_material_number < 0.85) {
-        material = std::make_unique<Metal>(util::get_random_vec(), 0.1);
-      }
-      else {
-        material = std::make_unique<Dielectric>(1.4);
+        const auto albedo = util::get_random_vec() * util::get_random_vec();
+        material = std::make_unique<Lambertian>(albedo);
+      } else if (random_material_number < 0.85) {
+        const auto albedo = util::get_random_vec(0.5, 1.);
+        const auto fuzz = util::get_random(0., 0.5);
+        material = std::make_unique<Metal>(albedo, fuzz);
+      } else {
+        material = std::make_unique<Dielectric>(1.5);
       }
 
       world.add<Sphere>(pos, small_radius, std::move(material));
     }
+
+  // Add 3 middle spheres.
+  auto material0 = std::make_unique<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+  world.add<Sphere>(scene_center + vec3d(0., -mid_radius, -3.), mid_radius, std::move(material0));
+
+  auto material1 = std::make_unique<Dielectric>(1.5);
+  world.add<Sphere>(
+    scene_center + vec3d(0., -mid_radius, 0.), mid_radius, std::move(material1));
+
+  auto material2 = std::make_unique<Lambertian>(Color(0.4, 0.2, 0.1));
+  world.add<Sphere>(
+    scene_center + vec3d(0., -mid_radius, 3.), mid_radius, std::move(material2));
 
   return world;
 }
@@ -92,11 +109,14 @@ HittableList createRandomWorld(vec3d const& scene_center) {
 // may reflect, refract, get partially absorbed, etc. depending on the objects
 // it hits on the way.
 int main(int argc, char* argv[]) {
-  const auto scene_center = vec3d(0., 0., 5.);
+  const auto scene_center = vec3d(0., 0., 6.);
 
-  const auto cam_eye = vec3d(0., -2., 1.);
+  const auto cam_eye = vec3d(-2.5, -1.5, 0.);
   const auto cam_direction = scene_center - cam_eye;
-  const auto cam_vertical_fov = util::deg_to_rad(90.);
+  const auto cam_vertical_fov = util::deg_to_rad(45.);
+
+  const auto num_samples_per_pixel = 50;
+  const auto max_ray_depth = 50;
 
   // Choose appropriate aspect ratio (width over height).
   const auto aspect_ratio = 16. / 9.;
@@ -111,8 +131,6 @@ int main(int argc, char* argv[]) {
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
 
-  const auto num_samples_per_pixel = 50;
-  const auto max_ray_depth = 50;
   const auto percentage_step_size = 5;
   auto last_step = 0;
   for (int row = 0; row < img_height; ++row) {
@@ -128,12 +146,15 @@ int main(int argc, char* argv[]) {
     }
     const auto percentage = 100. * double(row) / img_height;
 
-    const auto current_step = static_cast<int>(percentage / percentage_step_size);
+    const auto current_step =
+        static_cast<int>(percentage / percentage_step_size);
     if (current_step > last_step) {
       last_step = current_step;
-      std::cerr << "Percentage done: " << last_step * percentage_step_size << "%\n";
+      std::cerr << "Percentage done: " << last_step * percentage_step_size
+                << "%\n";
     }
   }
+  std::cerr << "Percentage done: 100%\n";
 
   std::cin.get();
 

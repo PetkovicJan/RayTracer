@@ -47,6 +47,45 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   return (1. - y1) * Color(1., 1., 1.) + y1 * Color(0.5, 0.7, 1.0);
 }
 
+std::vector<std::unique_ptr<Material>> materials;
+
+HittableList createRandomWorld(vec3d const& scene_center) {
+
+  const auto big_radius = 100.;
+  const auto small_radius = .4;
+
+  HittableList world;
+
+  auto ground = std::make_unique<Lambertian>(Color(0.4, 0.6, 0.2));
+  world.add<Sphere>(scene_center + vec3d(0., big_radius, 0.), big_radius, ground.get());
+  materials.push_back(std::move(ground));
+
+  // Place small spheres on the plane of the big sphere.
+  for(int x = -2; x < 2; ++x)
+    for (int y = -2; y < 2; ++y)
+    {
+      const auto pos = scene_center + vec3d(x, -small_radius, y);
+
+      const auto random_material_number = util::get_random();
+
+      std::unique_ptr<Material> material;
+      if (random_material_number < 0.5) {
+        material = std::make_unique<Lambertian>(util::get_random_vec());
+      }
+      else if (random_material_number < 0.85) {
+        material = std::make_unique<Metal>(util::get_random_vec(), 0.1);
+      }
+      else {
+        material = std::make_unique<Dielectric>(1.4);
+      }
+
+      world.add<Sphere>(pos, small_radius, material.get());
+      materials.push_back(std::move(material));
+    }
+
+  return world;
+}
+
 // We generate images with ray tracing in the following way. We set up the
 // "world" - a set of objects in 3D. Then we set up the camera eye (a point in
 // 3D space) and a window (a rectangle in 3D space), through which the eye sees
@@ -59,41 +98,25 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
 int main(int argc, char* argv[]) {
   const auto scene_center = vec3d(0., 0., 5.);
 
-  const auto cam_eye = vec3d(-2., -3., 0.);
+  const auto cam_eye = vec3d(0., -2., 1.);
   const auto cam_direction = scene_center - cam_eye;
   const auto cam_vertical_fov = util::deg_to_rad(90.);
 
   // Choose appropriate aspect ratio (width over height).
   const auto aspect_ratio = 16. / 9.;
-  const auto img_width = 400;
+  const auto img_width = 800;
   const auto img_height = static_cast<int>(img_width / aspect_ratio);
   const Camera cam(cam_eye, cam_direction, cam_vertical_fov, img_width,
                    img_height);
 
-  const int num_samples_per_pixel = 50;
-
-  const int max_ray_depth = 50;
-
-  // Materials.
-  Lambertian lambertian0(Color(0.8, 0.4, 0.));
-  Lambertian lambertian1(Color(0.4, 0.8, 0.));
-  Metal metal0(Color(0.8, 0.8, 0.8), 0.2);
-  Metal metal1(Color(0.8, 0.6, 0.2), 0.5);
-  Dielectric dielectric(1.5);
-
-  // Setup the world.
-  HittableList world;
-  const auto big_radius = 100.;
-  const auto small_radius = 1.;
-  world.add<Sphere>(scene_center + vec3d(0., big_radius + small_radius + 0.5, 0.), big_radius, &lambertian0);
-  world.add<Sphere>(scene_center, small_radius, &lambertian1);
-  world.add<Sphere>(scene_center + vec3d(2., -1., 0.), small_radius, &metal0);
-  world.add<Sphere>(scene_center + vec3d(-2.5, 0., 0.), small_radius, &dielectric);
+  HittableList world = createRandomWorld(scene_center);
 
   // Output image in ppm format. Note that we can redirect the output to a file
   // with .ppm extension using this command: app.exe > image.ppm
   std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
 
+  const auto num_samples_per_pixel = 50;
+  const auto max_ray_depth = 50;
   const auto percentage_step_size = 5;
   auto last_step = 0;
   for (int row = 0; row < img_height; ++row) {

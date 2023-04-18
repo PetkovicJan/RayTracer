@@ -5,8 +5,8 @@
 
 class Sphere : public Hittable {
  public:
-  explicit Sphere(vec3d const& center, double radius, Material* material)
-      : center_(center), radius_(radius), material_(material) {}
+  explicit Sphere(vec3d const& center, double radius, std::unique_ptr<Material> material)
+      : center_(center), radius_(radius), material_(std::move(material)) {}
 
   bool hit(Ray const& ray, double t_min, double t_max,
            HitRecord& hit_record) const override {
@@ -38,7 +38,7 @@ class Sphere : public Hittable {
     hit_record.point = ray.at(t);
     const auto outward_normal = (hit_record.point - center_) / radius_;
     hit_record.set_face_normal(ray, outward_normal);
-    hit_record.material = material_;
+    hit_record.material = material_.get();
 
     return true;
   }
@@ -46,5 +46,5 @@ class Sphere : public Hittable {
  private:
   vec3d center_;
   double radius_;
-  Material* material_ = nullptr;
+  std::unique_ptr<Material> material_ = nullptr;
 };

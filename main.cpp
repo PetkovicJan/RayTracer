@@ -47,8 +47,6 @@ Color getRayColor(HittableList const& world, Ray const& ray, int depth) {
   return (1. - y1) * Color(1., 1., 1.) + y1 * Color(0.5, 0.7, 1.0);
 }
 
-std::vector<std::unique_ptr<Material>> materials;
-
 HittableList createRandomWorld(vec3d const& scene_center) {
 
   const auto big_radius = 100.;
@@ -57,8 +55,7 @@ HittableList createRandomWorld(vec3d const& scene_center) {
   HittableList world;
 
   auto ground = std::make_unique<Lambertian>(Color(0.4, 0.6, 0.2));
-  world.add<Sphere>(scene_center + vec3d(0., big_radius, 0.), big_radius, ground.get());
-  materials.push_back(std::move(ground));
+  world.add<Sphere>(scene_center + vec3d(0., big_radius, 0.), big_radius, std::move(ground));
 
   // Place small spheres on the plane of the big sphere.
   for(int x = -2; x < 2; ++x)
@@ -79,8 +76,7 @@ HittableList createRandomWorld(vec3d const& scene_center) {
         material = std::make_unique<Dielectric>(1.4);
       }
 
-      world.add<Sphere>(pos, small_radius, material.get());
-      materials.push_back(std::move(material));
+      world.add<Sphere>(pos, small_radius, std::move(material));
     }
 
   return world;
@@ -138,6 +134,8 @@ int main(int argc, char* argv[]) {
       std::cerr << "Percentage done: " << last_step * percentage_step_size << "%\n";
     }
   }
+
+  std::cin.get();
 
   return 0;
 }
